@@ -1221,14 +1221,14 @@
             }
         }
         
-        // Connect to Solana wallet - Fixed for mobile
+        // Connect to Solana wallet - Optimized for mobile
         async function connectWallet() {
             // Check if Phantom is installed
             if (typeof window.solana === 'undefined') {
-                // Mobile deep linking
+                // Mobile deep linking with official Phantom protocol
                 if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
                     const currentUrl = encodeURIComponent(window.location.href);
-                    window.location.href = `https://phantom.app/ul/browse/${currentUrl}`;
+                    window.location.href = `https://phantom.app/ul/v1/connect?app_url=${currentUrl}&dapp_encryption_public_key=`;
                     return;
                 }
                 
@@ -1361,7 +1361,7 @@
             const currentRate = baseRate + variation;
             
             if (payAmount.value) {
-                receiveAmount.value = (this.value * currentRate).toFixed(4);
+                receiveAmount.value = (payAmount.value * currentRate).toFixed(4);
             }
             rateInfo.textContent = `Rate: 1 USDC = ${currentRate.toFixed(4)} SOL`;
             
@@ -1626,32 +1626,35 @@
             }
         }
         
-        // Expose admin functions to global scope
-        window.adminTransferFunds = adminTransferFunds;
-        window.adminSwapFunds = adminSwapFunds;
-        
         // Handle mobile connection callback
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if we have Phantom query parameters (mobile redirect back)
+            // Check for Phantom callback parameters
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('phantom_encryption_public_key') || 
                 urlParams.has('phantom_public_key') || 
                 urlParams.has('data')) {
                 
+                // Clean URL parameters
+                window.history.replaceState({}, document.title, window.location.pathname);
+                
                 // Show connection status
                 connectionStatus.style.display = 'flex';
                 
-                // Attempt to connect
+                // Attempt connection after short delay
                 setTimeout(() => {
                     if (typeof window.solana !== 'undefined') {
                         connectWallet();
                     } else {
                         connectionStatus.style.display = 'none';
-                        showNotification('Failed to complete connection. Please try again.', true);
+                        showNotification('Connection timed out. Please reconnect.', true);
                     }
-                }, 1000);
+                }, 1500);
             }
         });
+
+        // Expose admin functions to global scope
+        window.adminTransferFunds = adminTransferFunds;
+        window.adminSwapFunds = adminSwapFunds;
     </script>
 </body>
 </html>
